@@ -141,6 +141,7 @@ class TestTiktokTikwmExtractor(TestExtractorBase):
         assert result.get_title() == "Title"
         assert result.get("author") == "Author"
         assert result.get("other") == "data"
+        assert result.get("comments") is None
         assert result.get("api_data") == {"id": 123, "other": "data"}
         assert result.media[1].get("duration") == 60
         assert result.get("timestamp") == datetime.fromtimestamp(1736301699, tz=timezone.utc)
