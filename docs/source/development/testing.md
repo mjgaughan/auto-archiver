@@ -8,7 +8,7 @@
 
 ## Running Tests 
 
-1. Make sure you've installed the dev dependencies with `pytest install --with dev`
+1. Make sure you've installed the dev dependencies with `poetry install --with dev`
 2. Tests can be run as follows:
 ```{code} bash
 #### Command prefix of 'poetry run' removed here for simplicity
