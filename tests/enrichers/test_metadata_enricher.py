@@ -82,3 +82,15 @@ def test_metadata_pickle(enricher, unpickle, mocker):
     actual_media = metadata.media
     assert len(expected_media) == len(actual_media)
     assert actual_media[0].properties.get("metadata") == expected_media[0].properties.get("metadata")
+
+
+"""
+def test_default_select_metadata(enricher, expected_selected_md, mocker):
+    mock_run = mocker.patch("subprocess.run")
+    mock_run.return_value.stdout = output
+    mock_run.return_value.stderr = ""
+    mock_run.return_value.returncode = 0
+
+    selected_md = enricher.select_metadata("test.jpg")
+    assert expected_selected_md == selected_md
+"""

@@ -16,9 +16,10 @@ class MetadataEnricher(Enricher):
 
         for i, m in enumerate(to_enrich.media):
             if len(md := self.get_metadata(m.filename)):
-                # TODO: pass md to new logic for selecting only desired metadata
-                specified_md = self.select_metadata(md_grocery_list, md)
-                to_enrich.media[i].set("metadata", specified_md)
+                # TODO: feature flag has this currently turned off
+                # specified_md = self.select_metadata(md_grocery_list, md)
+                # to_enrich.media[i].set("metadata", specified_md)
+                to_enrich.media[i].set("metadata", md)
 
     def get_metadata(self, filename: str) -> dict:
         try:
