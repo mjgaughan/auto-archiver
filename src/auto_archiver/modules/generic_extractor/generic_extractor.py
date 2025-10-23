@@ -4,6 +4,7 @@ import datetime
 import os
 import importlib
 import subprocess
+import traceback
 import zipfile
 
 from typing import Generator, Type
@@ -305,7 +306,7 @@ class GenericExtractor(Extractor):
             result.set_url(url)
 
         if "description" in video_data and not result.get("content"):
-            result.set_content(video_data.get("description"))
+            result.set_content(video_data.pop("description"))
         # extract comments if enabled
         if self.comments and video_data.get("comments", None) is not None:
             result.set(
@@ -406,9 +407,9 @@ class GenericExtractor(Extractor):
                             logger.error(f"Error loading subtitle file {val.get('filepath')}: {e}")
                 result.add_media(new_media)
             except Exception as e:
-                logger.error(f"Error processing entry {entry}: {e}")
+                logger.error(f"Error processing entry {str(entry)[:256]}: {e} {traceback.format_exc()}")
         if not len(result.media):
-            logger.info(f"No media found for entry {entry}, skipping.")
+            logger.info(f"No media found for entry {str(entry)[:256]}, skipping.")
             return False
 
         return self.add_metadata(data, info_extractor, url, result)
@@ -604,9 +605,9 @@ class GenericExtractor(Extractor):
             validated_options
         )  # allsubtitles and subtitleslangs not working as expected, so default lang is always "en"
 
+        result: Metadata = None
         for info_extractor in self.suitable_extractors(url):
-            result = self.download_for_extractor(info_extractor, url, ydl)
-            if result:
-                return result
-
-        return False
+            local_result: Metadata = self.download_for_extractor(info_extractor, url, ydl)
+            if local_result:
+                result = result.merge(local_result) if result else local_result
+        return result if result else False
