@@ -1,30 +1,64 @@
-from datetime import datetime
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+import json
+from typing import Any
+
 from auto_archiver.core import Metadata
 from auto_archiver.version import __version__
 
-class PlatformStatus:
-	def __init__(
-		self,
-		metadata: Metadata,
-		platform_name: str,
-		url: str,
-		content_type: str,
-	) -> None:
-		#platform status eval metadata
-		self.id = f"{datetime.now().isoformat()}_{platform_name}_{content_type}"
-		self.metadata: Metadata = metadata
-		self.run_datetime: datetime = datetime.now()
-		self.current_metadata = self.metadata.metadata
-		self.aa_version: str = __version__
-		#platform status eval specifics
-		self.platform_name: str = platform_name
-		self.trial_url: str = url
-		self.content_type: str = content_type
-		self.isContentAccessible: bool = False
-		self.isContentArchived: bool = False
 
-	def ContentAccessible(self, accessible: bool) -> None:
-		self.isContentAccessible = accessible
-	
-	def ContentArchived(self, archived: bool) -> None:
-		self.isContentArchived = archived
+def _utcnow_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _make_id(platform_name: str, content_type: str) -> str:
+    return f"{_utcnow_iso()}_{platform_name}_{content_type}"
+
+
+@dataclass
+class PlatformStatus:
+    """Serializable status record for a platform/url trial."""
+
+    id: str
+    run_datetime: str
+    aa_version: str
+    platform_name: str
+    archive_url: str
+    content_type: str
+    is_content_accessible: bool = False
+    is_content_archived: bool = False
+    current_metadata: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_metadata(
+        cls,
+        metadata: Metadata,
+        platform_name: str,
+        archive_url: str,
+        content_type: str,
+    ) -> PlatformStatus:
+        return cls(
+            id=_make_id(platform_name, content_type),
+            run_datetime=_utcnow_iso(),
+            aa_version=__version__,
+            platform_name=platform_name,
+            archive_url=archive_url,
+            content_type=content_type,
+            current_metadata=dict(metadata.metadata),
+        )
+
+    def content_accessible(self, accessible: bool) -> None:
+        self.is_content_accessible = accessible
+
+    def content_archived(self, archived: bool) -> None:
+        self.is_content_archived = archived
+
+    def to_record(self) -> dict[str, Any]:
+        """Returns a plain dictionary ready for JSON serialization."""
+        return asdict(self)
+
+    def to_json(self, *, indent: int | None = None) -> str:
+        """Returns a JSON string representation of this status record."""
+        return json.dumps(self.to_record(), ensure_ascii=False, indent=indent)
